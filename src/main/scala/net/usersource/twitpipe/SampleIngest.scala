@@ -46,10 +46,15 @@ class SampleIngest extends Actor {
     self ! NextMessage
   }
 
+
   protected def receive = {
     case Connect => {
       Twitter.getSampleBufferReader fold (connectFail _, connectSuccess _)
+      become(active)
     }
+  }
+
+  def active: Receive = {
     case NextMessage => {
       readMessage fold (readFail _, readSuccess _)
     }
@@ -57,4 +62,5 @@ class SampleIngest extends Actor {
       stream.get.close
     }
   }
+
 }
