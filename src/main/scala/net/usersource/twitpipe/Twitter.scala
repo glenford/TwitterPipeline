@@ -4,7 +4,7 @@ import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.client.methods.{HttpPost, HttpGet}
 import java.io.{InputStreamReader, BufferedReader}
-
+import org.apache.http.params.{HttpConnectionParams, HttpParams}
 
 object Twitter {
   case class Error( val message: String )
@@ -15,6 +15,9 @@ object Twitter {
   val consumerSecret =  System.getProperty("consumerSecret")
   val accessToken = System.getProperty("accessToken")
   val accessSecret = System.getProperty("accessSecret")
+
+  val connectionTimeout = 60 * 1000
+  val soTimeout = 60 * 1000
 
   val consumer = {
     if( consumerKey == null || consumerKey.isEmpty ||
@@ -32,6 +35,9 @@ object Twitter {
   def getSampleBufferReader: Either[Error,BufferedReader] = {
     try {
       val request = new HttpPost(sampleUri)
+      HttpConnectionParams.setConnectionTimeout(request.getParams,connectionTimeout)
+      HttpConnectionParams.setSoTimeout(request.getParams,soTimeout)
+
       consumer.sign(request);
 
       val httpClient = new DefaultHttpClient();
