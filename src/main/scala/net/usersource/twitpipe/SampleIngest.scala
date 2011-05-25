@@ -19,6 +19,7 @@ class SampleIngest( val sink: ActorRef ) extends Actor {
   var stream: Option[BufferedReader] = None
 
   private def connectSuccess(br: BufferedReader) = {
+    EventHandler.info(this,"Connected")
     stream = Some(br)
     become(active)
   }
@@ -63,6 +64,7 @@ class SampleIngest( val sink: ActorRef ) extends Actor {
       readMessage fold (readFail _, readSuccess _)
     }
     case CloseConnection => {
+      EventHandler.warning(this,"CloseConnection")
       stream.get.close
       stream = None
       become(inActive)
