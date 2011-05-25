@@ -22,6 +22,7 @@ class SampleIngest( val sink: ActorRef ) extends Actor {
     EventHandler.info(this,"Connected")
     stream = Some(br)
     become(active)
+    self ! NextMessage
   }
 
   private def connectFail(err: Error) = {
