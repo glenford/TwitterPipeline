@@ -1,30 +1,34 @@
 package net.usersource.twitpipe
 
-import akka.actor.Actor
 import java.io.BufferedReader
 import net.usersource.twitpipe.Twitter.Error
-import scala.Some
 import java.net.SocketTimeoutException
-
+import akka.dispatch.Dispatchers
+import akka.actor.{ActorRef, Actor}
+import akka.event.EventHandler
 
 
 case object Connect
 case object NextMessage
 case object CloseConnection
 
-class SampleIngest extends Actor {
+class SampleIngest( val sink: ActorRef ) extends Actor {
+
+  self.dispatcher = Dispatchers.newThreadBasedDispatcher(self)
 
   var stream: Option[BufferedReader] = None
 
   private def connectSuccess(br: BufferedReader) = {
     stream = Some(br)
+    become(active)
   }
 
   private def connectFail(err: Error) = {
+    EventHandler.error(this,"Connection Error : " + err.message)
     stream = None
   }
 
-  class ReadError( val message: String )
+  private class ReadError( val message: String )
 
   private def readMessage: Either[ReadError,String] = {
     try {
@@ -42,15 +46,15 @@ class SampleIngest extends Actor {
   }
 
   private def readSuccess(message: String) = {
-    println(message)
+    sink ! message
     self ! NextMessage
   }
 
-
-  protected def receive = {
+  protected def receive = inActive
+  
+  def inActive: Receive = {
     case Connect => {
       Twitter.getSampleBufferReader fold (connectFail _, connectSuccess _)
-      become(active)
     }
   }
 
@@ -60,6 +64,8 @@ class SampleIngest extends Actor {
     }
     case CloseConnection => {
       stream.get.close
+      stream = None
+      become(inActive)
     }
   }
 

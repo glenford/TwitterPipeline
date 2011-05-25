@@ -7,19 +7,20 @@ import java.io.{InputStreamReader, BufferedReader}
 import org.apache.http.params.{HttpConnectionParams, HttpParams}
 
 object Twitter {
+
   case class Error( val message: String )
 
   val sampleUri = "http://stream.twitter.com/1/statuses/sample.json"
 
-  val consumerKey = System.getProperty("consumerKey")
-  val consumerSecret =  System.getProperty("consumerSecret")
-  val accessToken = System.getProperty("accessToken")
-  val accessSecret = System.getProperty("accessSecret")
-
   val connectionTimeout = 60 * 1000
   val soTimeout = 60 * 1000
 
-  val consumer = {
+  lazy val consumer = {
+    val consumerKey = System.getProperty("consumerKey")
+    val consumerSecret =  System.getProperty("consumerSecret")
+    val accessToken = System.getProperty("accessToken")
+    val accessSecret = System.getProperty("accessSecret")
+
     if( consumerKey == null || consumerKey.isEmpty ||
         consumerSecret == null || consumerKey.isEmpty ||
         accessToken == null || accessToken.isEmpty ||
