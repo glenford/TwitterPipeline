@@ -4,6 +4,7 @@ import net.usersource.jettyembed.JettyEmbedWebProject
 
 class TwitterPipeline(info: ProjectInfo) extends JettyEmbedWebProject(info) with AkkaProject with ScctProject with IdeaProject {
 
+  val remote = akkaModule("remote")
   val testit = akkaModule("testkit")
 
   val signpost = "oauth.signpost" % "signpost-core" % "1.2"
