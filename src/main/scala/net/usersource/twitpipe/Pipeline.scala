@@ -12,7 +12,7 @@ class ConsoleDump extends Actor {
 
 object Pipeline {
   val sink = actorOf[ConsoleDump].start()
-  val sample = actorOf(new SampleIngest(sink)).start()
+  val sample = actorOf(new SampleIngest(new TwitterEndpoint,sink)).start()
 
-  def start = { sample ! Connect }
+  def start() = { sample ! Connect }
 }

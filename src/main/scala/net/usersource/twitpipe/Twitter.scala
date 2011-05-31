@@ -8,8 +8,6 @@ import org.apache.http.params.{HttpConnectionParams, HttpParams}
 
 object Twitter {
 
-  case class Error( val message: String )
-
   val sampleUri = "http://stream.twitter.com/1/statuses/sample.json"
 
   val connectionTimeout = 60 * 1000
