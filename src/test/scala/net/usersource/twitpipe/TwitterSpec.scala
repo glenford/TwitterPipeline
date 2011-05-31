@@ -16,6 +16,7 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
     scenario("") {
       given("I have a mocked Twitter endpoint")
       val br = mock[BufferedReader]
+      Mockito.when(br.readLine()).thenReturn("some data")
       val endpoint = mock[TwitterEndpoint]
       Mockito.when(endpoint.connect).thenReturn(Right(br))
 
@@ -25,7 +26,7 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       and("I send it a connect message")
       connector ! Connect
 
-      then("It shall send me some data via the queue")
+      then("It shall send me some data")
       expectMsgClass(5.seconds,classOf[String])
     }
   }
