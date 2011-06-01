@@ -47,19 +47,15 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
 
 
     scenario("Failing to connect") {
-      class EventHandlingActor( val testActor: ActorRef ) extends Actor {
-        self.dispatcher = EventHandler.EventHandlerDispatcher
-        def receive = {
-          case genericEvent => testActor ! genericEvent
-        }
-      }
+
 
       given("I have a mocked Twitter endpoint")
       val endpoint = mock[TwitterEndpoint]
       Mockito.when(endpoint.connect).thenReturn(Left(new Error("Connection Failed")))
 
       and("I have an event handler")
-      val evtHandler = actorOf(new EventHandlingActor(this.testActor))
+      val evtHandler = actorOf(new EventHandlingForwardingActor(this.testActor))
+      EventHandler.addListener(evtHandler)
 
       when("I create a Sample connector")
       val connector = actorOf( new SampleIngest(endpoint, this.testActor)).start
@@ -67,10 +63,17 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       and("I send it a connect message")
       connector ! Connect
 
-      then("it shall not send me any data")
-      expectMsg(5 seconds,classOf[EventHandler.Error])
+      then("it shall result in an error event")
+      expectMsgClass(5 seconds,classOf[EventHandler.Error])
     }
 
   }
 }
 
+class EventHandlingForwardingActor(val testActor: ActorRef) extends Actor {
+  self.dispatcher = EventHandler.EventHandlerDispatcher
+
+  def receive = {
+    case genericEvent => testActor.!(genericEvent)
+  }
+}
