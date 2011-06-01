@@ -7,6 +7,7 @@ import akka.actor.{ActorRef, Actor}
 import akka.event.EventHandler
 
 
+
 case object Connect
 case object NextMessage
 case object CloseConnection
@@ -31,12 +32,12 @@ class SampleIngest( val endpoint: Endpoint, val sink: ActorRef ) extends Actor {
 
   private class ReadError( val message: String )
 
-  private def readMessage: Either[ReadError,String] = {
+  private def readMessage: Either[ReadError,Option[String]] = {
     try {
-      Right(stream.get.readLine())
+      Right(Some(stream.get.readLine()))
     }
     catch {
-      case e: SocketTimeoutException => Left(new ReadError("Socket Timeout"))
+      case e: SocketTimeoutException => Right(None)
       case e: Exception => Left(new ReadError(e.getMessage))
       case _ => Left(new ReadError("Unknown"))
     }
@@ -46,8 +47,8 @@ class SampleIngest( val endpoint: Endpoint, val sink: ActorRef ) extends Actor {
     self ! CloseConnection
   }
 
-  private def readSuccess(message: String) = {
-    sink ! message
+  private def readSuccess(message: Option[String]) = {
+    message.map( sink ! _ )
     self ! NextMessage
   }
 
