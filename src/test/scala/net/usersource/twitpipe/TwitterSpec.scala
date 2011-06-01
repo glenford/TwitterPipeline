@@ -4,14 +4,19 @@ import org.scalatest.matchers.MustMatchers
 import org.scalatest.{FeatureSpec, GivenWhenThen}
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito
+import akka.actor.Actor
+import akka.actor.ActorRef
 import akka.actor.Actor._
 import akka.testkit.TestKit
 import java.io.BufferedReader
 import akka.util.duration._
-import scala.{PartialFunction, Left}
+import scala.Left
 import org.mockito.stubbing.Answer
 import org.mockito.invocation.InvocationOnMock
 import java.net.SocketTimeoutException
+import akka.event.EventHandler
+
+
 
 class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with MockitoSugar with TestKit {
 
@@ -42,9 +47,19 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
 
 
     scenario("Failing to connect") {
+      class EventHandlingActor( val testActor: ActorRef ) extends Actor {
+        self.dispatcher = EventHandler.EventHandlerDispatcher
+        def receive = {
+          case genericEvent => testActor ! genericEvent
+        }
+      }
+
       given("I have a mocked Twitter endpoint")
       val endpoint = mock[TwitterEndpoint]
       Mockito.when(endpoint.connect).thenReturn(Left(new Error("Connection Failed")))
+
+      and("I have an event handler")
+      val evtHandler = actorOf(new EventHandlingActor(this.testActor))
 
       when("I create a Sample connector")
       val connector = actorOf( new SampleIngest(endpoint, this.testActor)).start
@@ -53,7 +68,7 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       connector ! Connect
 
       then("it shall not send me any data")
-      expectNoMsg(5 seconds)
+      expectMsg(5 seconds,classOf[EventHandler.Error])
     }
 
   }
