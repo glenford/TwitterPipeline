@@ -2,6 +2,7 @@ package net.usersource.twitpipe
 
 import org.scalatest.matchers.MustMatchers
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfterEach, FeatureSpec, GivenWhenThen}
 import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 import org.mockito.invocation.InvocationOnMock
@@ -13,8 +14,6 @@ import akka.util.duration._
 import java.io.BufferedReader
 import java.net.SocketTimeoutException
 import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
-import org.scalatest.{BeforeAndAfterEach, FeatureSpec, GivenWhenThen}
-
 
 
 class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with BeforeAndAfterEach with MockitoSugar with TestKit {
@@ -60,7 +59,6 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       Mockito.verify(br).close()
     }
 
-
     scenario("Failing to connect") {
       given("I have a mocked Twitter endpoint")
       val endpoint = mock[TwitterEndpoint]
@@ -80,7 +78,7 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
     }
 
     scenario("Connects but dies after a few messages") {
-      given("I have a mocked Twitter endpoint")
+      given("I have a mocked Twitter endpoint which will send three messages and then die")
       val br = mock[BufferedReader]
       Mockito.when(br.readLine()).
         thenReturn("some data").
@@ -92,22 +90,22 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       val endpoint = mock[TwitterEndpoint]
       Mockito.when(endpoint.connect).thenReturn(Right(br))
 
-      when("I create a Sample connector")
+      when("I create a Sample connector on the endpoint")
       val connector = actorOf( new SampleIngest(endpoint, this.testActor)).start
 
       and("I send it a connect message")
       connector ! Connect
 
-      then("It shall send me some data")
+      then("It shall send me three messages data")
       expectMsgClass(5 seconds,classOf[String])
       expectMsgClass(5 seconds,classOf[String])
       expectMsgClass(5 seconds,classOf[String])
 
-      and("then we see an info followed by a warning event")
+      and("then we will also see an Info event followed by a Warning event")
       expectQueuedEvent[EventHandler.Info]("Failed to get Info",1000)
       expectQueuedEvent[EventHandler.Warning]("Failed to get Warning",1000)
 
-      and("and see the stream is closed")
+      and("and see the underlying stream is closed")
       Mockito.verify(br).close()
     }
   }
