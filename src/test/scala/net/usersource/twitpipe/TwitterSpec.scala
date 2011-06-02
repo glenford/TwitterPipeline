@@ -26,7 +26,7 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       given("I have a mocked Twitter endpoint")
       val br = mock[BufferedReader]
       Mockito.when(br.readLine()).thenReturn("some data").thenAnswer( new Answer[Unit] {
-        def answer(p1: InvocationOnMock) { throw new SocketTimeoutException() }
+        def answer(p1: InvocationOnMock) { Thread.sleep(100); throw new SocketTimeoutException() }
       } )
       val endpoint = mock[TwitterEndpoint]
       Mockito.when(endpoint.connect).thenReturn(Right(br))
@@ -42,13 +42,14 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
 
       and("we close the connection")
       connector ! CloseConnection
+
+      and("wait till actor has had a chance to process nextevent")
+      Thread.sleep(150)
       Mockito.verify(br).close()
     }
 
 
     scenario("Failing to connect") {
-
-
       given("I have a mocked Twitter endpoint")
       val endpoint = mock[TwitterEndpoint]
       Mockito.when(endpoint.connect).thenReturn(Left(new Error("Connection Failed")))
