@@ -13,15 +13,17 @@ import akka.util.duration._
 import java.io.BufferedReader
 import java.net.SocketTimeoutException
 import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FeatureSpec, GivenWhenThen}
+import org.scalatest.{BeforeAndAfterEach, FeatureSpec, GivenWhenThen}
+
+
 
 class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with BeforeAndAfterEach with MockitoSugar with TestKit {
 
-  val eventQueue = new LinkedBlockingQueue[Any]()
+  val eventQueue = new LinkedBlockingQueue[EventHandler.Event]()
   val evtHandler = actorOf(new Actor() {
         self.dispatcher = EventHandler.EventHandlerDispatcher
         protected def receive = {
-           case genericEvent => eventQueue.offer(genericEvent)
+           case genericEvent: EventHandler.Event => eventQueue.offer(genericEvent)
         }
       })
   EventHandler.addListener(evtHandler)
@@ -102,18 +104,16 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       expectMsgClass(5 seconds,classOf[String])
 
       and("then we see an info followed by a warning event")
-      eventQueue.poll(1000,TimeUnit.MILLISECONDS) match {
-        case e: EventHandler.Info => {}
-        case a: Any => fail("Failed to get Info, got [" + a + "]")
-      }
-      eventQueue.poll(1000,TimeUnit.MILLISECONDS) match {
-        case e: EventHandler.Warning => {}
-        case a: Any => fail("Failed to get Warning, got [" + a + "]")
-      }
+      expectQueuedEvent[EventHandler.Info]("Failed to get Info",1000)
+      expectQueuedEvent[EventHandler.Warning]("Failed to get Warning",1000)
 
       and("and see the stream is closed")
       Mockito.verify(br).close()
     }
+  }
 
+  def expectQueuedEvent[T <:EventHandler.Event]( message: String, millis: Long )(implicit m: Manifest[T]) = {
+    val evt = eventQueue.poll(millis,TimeUnit.MILLISECONDS)
+    if( evt.getClass.getName != m.toString )  fail( message + "\nExpected [" + m + "] received [" + evt.getClass.getName + "]")
   }
 }
