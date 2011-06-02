@@ -16,7 +16,7 @@ import java.net.SocketTimeoutException
 import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
 
 
-class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with BeforeAndAfterEach with MockitoSugar with TestKit {
+class SampleIngestEndpointHandlingSpec extends FeatureSpec with GivenWhenThen with MustMatchers with BeforeAndAfterEach with MockitoSugar with TestKit {
 
   val eventQueue = new LinkedBlockingQueue[EventHandler.Event]()
   val evtHandler = actorOf(new Actor() {
@@ -32,7 +32,6 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
   }
 
   feature("Creating a Sample Ingest") {
-    
     scenario("Creating a connection") {
       given("I have a mocked Twitter endpoint")
       val br = mock[BufferedReader]
@@ -91,7 +90,7 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       Mockito.when(endpoint.connect).thenReturn(Right(br))
 
       when("I create a Sample connector on the endpoint")
-      val connector = actorOf( new SampleIngest(endpoint, this.testActor)).start
+      val connector = actorOf(new SampleIngest(endpoint, this.testActor)).start
 
       and("I send it a connect message")
       connector ! Connect
@@ -106,12 +105,13 @@ class TwitterSpec extends FeatureSpec with GivenWhenThen with MustMatchers with 
       expectQueuedEvent[EventHandler.Warning]("Failed to get Warning",1000)
 
       and("and see the underlying stream is closed")
+      Thread.sleep(150)
       Mockito.verify(br).close()
     }
   }
 
-  def expectQueuedEvent[T <:EventHandler.Event]( message: String, millis: Long )(implicit m: Manifest[T]) = {
+  def expectQueuedEvent[T <:EventHandler.Event]( failMessage: String, millis: Long )(implicit m: Manifest[T]) = {
     val evt = eventQueue.poll(millis,TimeUnit.MILLISECONDS)
-    if( evt.getClass.getName != m.toString )  fail( message + "\nExpected [" + m + "] received [" + evt.getClass.getName + "]")
+    if( evt.getClass.getName != m.toString )  fail( failMessage + "\nExpected [" + m + "] received [" + evt.getClass.getName + "]")
   }
 }
