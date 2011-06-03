@@ -72,6 +72,11 @@ class StatusSpec extends FeatureSpec with GivenWhenThen with MustMatchers with B
 
         then("object elements match the user")
         parsed.screen_name must be === "lasciviousCHARR"
+        parsed.name must be === "Chardonee S."
+        parsed.id_str must be === "233786894"
+        parsed.statuses_count must be === 8633
+        parsed.lang must be === "en"
+        parsed.location must be === Some("OHIO")
       }
 
 
