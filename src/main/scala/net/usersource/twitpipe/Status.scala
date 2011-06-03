@@ -29,7 +29,7 @@ object JSON {
                    name: String,
                    lang: String,
                    location: Option[String],
-                   time_zone: String,
+                   time_zone: Option[String],
                    description: Option[String],
                    statuses_count: Long,
                    url: Option[String]

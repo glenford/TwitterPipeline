@@ -26,7 +26,8 @@ class StatusSpec extends FeatureSpec with GivenWhenThen with MustMatchers with B
         parsed.longitude must be === 90.0
       }
 
-      scenario("able to parse a User") {
+
+      scenario("able to parse a User") {  // random user captured from twitterverse
         given("a valid user")
         val user = Js("""{
                            "profile_background_tile":true,
@@ -80,7 +81,7 @@ class StatusSpec extends FeatureSpec with GivenWhenThen with MustMatchers with B
       }
 
 
-      scenario("able to parse a valid status") {
+      scenario("able to parse a valid status") {  // random status captured from the twitterverse
         given("a valid status")
         val status = Js("""{
                              "text":"i need to buy a new camera",
@@ -95,7 +96,17 @@ class StatusSpec extends FeatureSpec with GivenWhenThen with MustMatchers with B
         then("object elements match the status")
         parsed.text must be === "i need to buy a new camera"
       }
-      
+
+      scenario("another status") {
+        given("a valid status")
+        val status = Js("""{"text":"@BarraBod bod u weren't a bad footballer better than any of ur brothers :)","geo":null,"truncated":false,"coordinates":null,"in_reply_to_user_id":45324832,"source":"\u003Ca href=\"http:\/\/twitter.com\/#!\/download\/iphone\" rel=\"nofollow\"\u003ETwitter for iPhone\u003C\/a\u003E","retweet_count":0,"in_reply_to_status_id":76734844708720640,"created_at":"Fri Jun 03 20:18:05 +0000 2011","favorited":false,"in_reply_to_status_id_str":"76734844708720640","entities":{"hashtags":[],"urls":[],"user_mentions":[{"indices":[0,9],"screen_name":"BarraBod","name":"Bod Macneil","id_str":"45324832","id":45324832}]},"place":null,"in_reply_to_screen_name":"BarraBod","in_reply_to_user_id_str":"45324832","id_str":"76744484750241792","user":{"profile_background_tile":false,"contributors_enabled":false,"statuses_count":23,"followers_count":22,"profile_image_url":"http:\/\/a2.twimg.com\/profile_images\/1370252503\/image_normal.jpg","is_translator":false,"favourites_count":3,"profile_link_color":"0084B4","location":"isle of barra","listed_count":0,"profile_sidebar_border_color":"C0DEED","description":null,"screen_name":"dasin71986","time_zone":null,"verified":false,"notifications":null,"profile_use_background_image":true,"created_at":"Mon Jul 12 23:58:20 +0000 2010","friends_count":64,"profile_background_color":"C0DEED","default_profile_image":false,"lang":"en","profile_background_image_url":"http:\/\/a3.twimg.com\/images\/themes\/theme1\/bg.png","protected":false,"default_profile":true,"name":"Michael Davidson","id_str":"165956268","show_all_inline_media":false,"geo_enabled":false,"profile_text_color":"333333","id":165956268,"follow_request_sent":null,"following":null,"utc_offset":null,"profile_sidebar_fill_color":"DDEEF6","url":null},"id":76744484750241792,"contributors":null,"retweeted":false}""")
+        when("parsed")
+        val parsed: Status = fromjson[Status](status)
+
+        then("object elements match the status")
+        parsed.text must be === "@BarraBod bod u weren't a bad footballer better than any of ur brothers :)"
+      }
+
     }
   
 }
