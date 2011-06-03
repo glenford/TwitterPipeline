@@ -4,11 +4,14 @@ import akka.serialization._
 import akka.serialization.Serializable.ScalaJSON
 import akka.serialization.JsonSerialization._
 import akka.serialization.DefaultProtocol._
+import reflect.BeanInfo
+import annotation.target.field
+import sjson.json.JSONTypeHint
 
 
 object JSON {
 
-  implicit val UserFormat: sjson.json.Format[User] =
+  implicit lazy val UserFormat: sjson.json.Format[User] =
     asProduct9("id_str",
       "screen_name",
       "name",
@@ -19,17 +22,18 @@ object JSON {
       "statuses_count",
       "url")(User)(User.unapply(_).get)
 
+  @BeanInfo
   case class User(
                    id_str: String,
                    screen_name: String,
                    name: String,
                    lang: String,
-                   location: String,
+                   location: Option[String],
                    time_zone: String,
-                   description: String,
+                   description: Option[String],
                    statuses_count: Long,
-                   url: String
-                   ) extends ScalaJSON[User] {
+                   url: Option[String]
+                  ) extends ScalaJSON[User] {
 
 
     def toJSON: String = JsValue.toJson(tojson(this))
@@ -39,9 +43,10 @@ object JSON {
 
   }
 
-  implicit val GeoFormat: sjson.json.Format[Geo] =
+  implicit lazy val GeoFormat: sjson.json.Format[Geo] =
     asProduct2("latitude", "longitude")(Geo)(Geo.unapply(_).get)
 
+  @BeanInfo
   case class Geo(
                   latitude: Double,
                   longitude: Double
@@ -54,30 +59,28 @@ object JSON {
     def fromJSON(js: String) = fromjson[Geo](Js(js))
   }
 
-  implicit val StatusFormat: sjson.json.Format[Status] =
-    asProduct9(
+  implicit lazy val StatusFormat: sjson.json.Format[Status] =
+    asProduct7(
       "id_str",
       "text",
       "created_at",
       "user",
-      "coordinates",
       "geo",
       "in_reply_to_screen_name",
-      "in_reply_to_status_id_str",
-      "source")(Status)(Status.unapply(_).get)
+      "in_reply_to_status_id_str"
+      )(Status)(Status.unapply(_).get)
 
 
+  @BeanInfo
   case class Status(
                      id_str: String,
                      text: String,
                      created_at: String,
-                     user: User,
-                     coordinates: String,
-                     geo: Geo,
-                     in_reply_to_screen_name: String,
-                     in_reply_to_status_id_str: Option[String],
-                     source: String
-                     ) extends ScalaJSON[Status] {
+                     @(JSONTypeHint @field)(value = classOf[User])user: User,
+                     @(JSONTypeHint @field)(value = classOf[Option[Geo]])geo: Option[Geo],
+                     in_reply_to_screen_name: Option[String],
+                     in_reply_to_status_id_str: Option[String]
+                    ) extends ScalaJSON[Status] {
 
 
     def toJSON: String = JsValue.toJson(tojson(this))
