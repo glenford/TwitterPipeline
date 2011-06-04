@@ -108,5 +108,8 @@ class StatusSpec extends FeatureSpec with GivenWhenThen with MustMatchers with B
       }
 
     }
+
+  // delete example
+  // {"delete":{"status":{"user_id_str":"251009806","id_str":"76748439953739778","id":76748439953739778,"user_id":251009806}}}
   
 }

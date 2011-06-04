@@ -17,7 +17,14 @@ class ConsoleDump extends Actor {
 
 class ParseMessages( nextStage: ActorRef ) extends Actor {
   def receive = {
-    case s: String => nextStage ! fromjson[Status](Js(s))
+    case s: String => {
+      try {
+        nextStage ! fromjson[Status](Js(s))
+      }
+      catch {
+        case _ => {} // delete
+      }
+    }
   }
 }
 
@@ -27,4 +34,5 @@ object Pipeline {
   val sample = actorOf(new SampleIngest(new TwitterEndpoint,parser)).start()
 
   def start() = { sample ! Connect }
+  def stop() = { sample ! CloseConnection }
 }
