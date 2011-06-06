@@ -4,13 +4,13 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.params.HttpConnectionParams
 import org.apache.http.impl.client.DefaultHttpClient
 import java.io.{InputStreamReader, BufferedReader}
-
+import java.lang.Error
 
 
 class TwitterEndpoint extends Endpoint with OAuth {
   def uri = "http://stream.twitter.com/1/statuses/sample.json"
 
-  def connect = {
+  def connect:Either[Error,BufferedReader] = {
     try {
       val request = new HttpPost(uri)
       HttpConnectionParams.setConnectionTimeout(request.getParams,connectionTimeout)
