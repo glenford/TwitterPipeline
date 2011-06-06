@@ -1,12 +1,11 @@
 package net.usersource.twitpipe
 
-import akka.actor.Actor._
 
 import net.usersource.twitpipe.JSON._
-
+import akka.actor.{ActorRef, Actor}
+import akka.actor.Actor._
 import sjson.json.JsonSerialization._
 import dispatch.json.Js
-import akka.actor.{ActorRef, Actor}
 
 
 class ConsoleDump extends Actor {
@@ -15,14 +14,14 @@ class ConsoleDump extends Actor {
   }
 }
 
-class ParseMessages( nextStage: ActorRef ) extends Actor {
+class ParseMessages( nextStatusStage: ActorRef ) extends Actor {
   def receive = {
     case s: String => {
       try {
-        nextStage ! fromjson[Status](Js(s))
+        nextStatusStage ! fromjson[Status](Js(s))
       }
       catch {
-        case _ => {} // delete
+        case _ => {} // delete, ignore for now
       }
     }
   }
