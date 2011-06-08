@@ -4,7 +4,6 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.params.HttpConnectionParams
 import org.apache.http.impl.client.DefaultHttpClient
 import java.io.{InputStreamReader, BufferedReader}
-import java.lang.Error
 
 
 class TwitterEndpoint extends Endpoint with OAuth {
