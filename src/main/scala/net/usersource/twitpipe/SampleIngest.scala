@@ -66,7 +66,12 @@ class SampleIngest( val endpoint: Endpoint, val sink: ActorRef ) extends Actor {
     }
     case CloseConnection => {
       EventHandler.warning(this,"CloseConnection")
-      stream.get.close()
+      try {
+        stream.get.close()
+      }
+      catch {
+        case _ => EventHandler.warning(this,"Exception in closing stream")
+      }
       stream = None
       become(inActive)
     }
